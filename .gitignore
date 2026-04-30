@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+.DS_Store
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Auto-generated from vite.config.ts when emitDeclarationOnly is on
+vite.config.d.ts
+vite.config.js
