@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { loadState, saveState } from '../storage';
 import type { AppState, Member, MemberInput, PunchRecord } from '../types';
+
+export type SyncStatus = 'loading' | 'idle' | 'saving' | 'error';
 
 export interface UseTimecard {
   members: Member[];
@@ -11,16 +13,67 @@ export interface UseTimecard {
   clockIn: (memberId: number) => void;
   clockOut: (memberId: number) => void;
   deleteRecord: (id: number) => void;
+  status: SyncStatus;
+  errorMessage: string | null;
 }
 
+const DEFAULT_STATE: AppState = { members: [], records: [], nextId: 1 };
+
 export function useTimecard(): UseTimecard {
-  const [state, setState] = useState<AppState>(() => loadState());
+  const [state, setState] = useState<AppState>(DEFAULT_STATE);
+  const [status, setStatus] = useState<SyncStatus>('loading');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isLoaded = useRef(false);
+  const saveTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    saveState(state);
+    let cancelled = false;
+    (async () => {
+      try {
+        const loaded = await loadState();
+        if (cancelled) return;
+        setState(loaded);
+        isLoaded.current = true;
+        setStatus('idle');
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : String(err);
+        setErrorMessage(message);
+        setStatus('error');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded.current) return;
+    if (saveTimer.current !== null) {
+      window.clearTimeout(saveTimer.current);
+    }
+    saveTimer.current = window.setTimeout(() => {
+      setStatus('saving');
+      saveState(state)
+        .then(() => {
+          setStatus('idle');
+          setErrorMessage(null);
+        })
+        .catch((err) => {
+          const message = err instanceof Error ? err.message : String(err);
+          setErrorMessage(message);
+          setStatus('error');
+        });
+    }, 300);
+    return () => {
+      if (saveTimer.current !== null) {
+        window.clearTimeout(saveTimer.current);
+      }
+    };
   }, [state]);
 
   useEffect(() => {
+    if (!isLoaded.current) return;
     const closeStaleRecords = () => {
       setState((prev) => {
         const todayStart = new Date();
@@ -45,7 +98,7 @@ export function useTimecard(): UseTimecard {
     closeStaleRecords();
     const intervalId = window.setInterval(closeStaleRecords, 60_000);
     return () => window.clearInterval(intervalId);
-  }, []);
+  }, [status]);
 
   const openRecordOf = useCallback(
     (memberId: number) =>
@@ -141,7 +194,19 @@ export function useTimecard(): UseTimecard {
       clockIn,
       clockOut,
       deleteRecord,
+      status,
+      errorMessage,
     }),
-    [state, openRecordOf, addMember, deleteMember, clockIn, clockOut, deleteRecord]
+    [
+      state,
+      openRecordOf,
+      addMember,
+      deleteMember,
+      clockIn,
+      clockOut,
+      deleteRecord,
+      status,
+      errorMessage,
+    ]
   );
 }

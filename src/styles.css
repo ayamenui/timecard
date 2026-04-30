@@ -157,6 +157,27 @@ h1 {
   color: var(--muted);
 }
 
+.error-banner {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.sync-indicator {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: var(--primary);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  opacity: 0.9;
+}
+
 .auto-closed-badge {
   display: inline-block;
   margin-left: 6px;
