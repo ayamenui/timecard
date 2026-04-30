@@ -11,3 +11,6 @@ dist-ssr
 # Auto-generated from vite.config.ts when emitDeclarationOnly is on
 vite.config.d.ts
 vite.config.js
+
+# Local data store (JSON file backend)
+data/
