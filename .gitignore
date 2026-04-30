@@ -12,5 +12,14 @@ dist-ssr
 vite.config.d.ts
 vite.config.js
 
-# Local data store (JSON file backend)
+# Local data store (legacy JSON file backend)
 data/
+
+# Environment variables
+.env
+.env.local
+
+# Google Service Account credentials - NEVER commit these
+server/credentials.json
+credentials.json
+*-credentials.json

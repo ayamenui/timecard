@@ -15,16 +15,23 @@ export interface UseTimecard {
   deleteRecord: (id: number) => void;
   status: SyncStatus;
   errorMessage: string | null;
+  lastSyncedAt: number | null;
 }
 
 const DEFAULT_STATE: AppState = { members: [], records: [], nextId: 1 };
+const POLL_INTERVAL_MS = 15_000;
+const SAVE_DEBOUNCE_MS = 300;
+
+const stringify = (state: AppState): string => JSON.stringify(state);
 
 export function useTimecard(): UseTimecard {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [status, setStatus] = useState<SyncStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const isLoaded = useRef(false);
   const saveTimer = useRef<number | null>(null);
+  const lastSyncedSnapshot = useRef<string>('');
 
   useEffect(() => {
     let cancelled = false;
@@ -32,9 +39,11 @@ export function useTimecard(): UseTimecard {
       try {
         const loaded = await loadState();
         if (cancelled) return;
+        lastSyncedSnapshot.current = stringify(loaded);
         setState(loaded);
         isLoaded.current = true;
         setStatus('idle');
+        setLastSyncedAt(Date.now());
       } catch (err) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
@@ -49,28 +58,63 @@ export function useTimecard(): UseTimecard {
 
   useEffect(() => {
     if (!isLoaded.current) return;
+    const currentSnapshot = stringify(state);
+    if (currentSnapshot === lastSyncedSnapshot.current) return;
     if (saveTimer.current !== null) {
       window.clearTimeout(saveTimer.current);
     }
     saveTimer.current = window.setTimeout(() => {
       setStatus('saving');
+      const snapshotAtSave = currentSnapshot;
       saveState(state)
         .then(() => {
+          lastSyncedSnapshot.current = snapshotAtSave;
           setStatus('idle');
           setErrorMessage(null);
+          setLastSyncedAt(Date.now());
         })
         .catch((err) => {
           const message = err instanceof Error ? err.message : String(err);
           setErrorMessage(message);
           setStatus('error');
         });
-    }, 300);
+    }, SAVE_DEBOUNCE_MS);
     return () => {
       if (saveTimer.current !== null) {
         window.clearTimeout(saveTimer.current);
       }
     };
   }, [state]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      if (cancelled || !isLoaded.current) return;
+      try {
+        const polled = await loadState();
+        if (cancelled) return;
+        const polledStr = stringify(polled);
+        setState((prev) => {
+          if (stringify(prev) !== lastSyncedSnapshot.current) {
+            return prev;
+          }
+          if (polledStr === lastSyncedSnapshot.current) {
+            return prev;
+          }
+          lastSyncedSnapshot.current = polledStr;
+          setLastSyncedAt(Date.now());
+          return polled;
+        });
+      } catch {
+        // ignore poll failures
+      }
+    };
+    const id = window.setInterval(poll, POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isLoaded.current) return;
@@ -196,6 +240,7 @@ export function useTimecard(): UseTimecard {
       deleteRecord,
       status,
       errorMessage,
+      lastSyncedAt,
     }),
     [
       state,
@@ -207,6 +252,7 @@ export function useTimecard(): UseTimecard {
       deleteRecord,
       status,
       errorMessage,
+      lastSyncedAt,
     ]
   );
 }
