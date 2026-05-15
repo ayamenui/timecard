@@ -136,3 +136,10 @@
 +                        ~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (fatal: unable t...ost: github.com:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
+[2026-05-15 23:16:57] ERROR pull --rebase failed (even after include-untracked stash)
+[2026-05-15 23:16:57] git : fatal: unable to access 'https://github.com/ayamenui/timecard.git/': Could not resolve host: github.com
+”­¶êŠ C:\Users\hajih\dotfiles\scripts\auto-sync-all.ps1:75 •¶Žš:24
++             $pullOut = git pull --rebase 2>&1
++                        ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...ost: github.com:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
