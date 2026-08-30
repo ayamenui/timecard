@@ -345,3 +345,10 @@ ds
 [2026-08-31 02:59:11] Pushed changes.
 [2026-08-31 03:09:56] Pushed changes.
 [2026-08-31 03:19:17] Pushed changes.
+[2026-08-31 03:39:06] ERROR pull --rebase failed (even after include-untracked stash)
+[2026-08-31 03:39:06] git : fatal: unable to access 'https://github.com/ayamenui/timecard.git/': Could not resolve host: github.com
+”­¶êŠ C:\Users\hajih\dotfiles\scripts\auto-sync-all.ps1:75 •¶Žš:24
++             $pullOut = git pull --rebase 2>&1
++                        ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...ost: github.com:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
