@@ -332,3 +332,10 @@ ds
     + CategoryInfo          : NotSpecified: (fatal: unable t...ost: github.com:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
 [2026-08-31 02:11:06] Pushed changes.
+[2026-08-31 02:20:15] ERROR push failed.
+[2026-08-31 02:20:21] git : fatal: unable to access 'https://github.com/ayamenui/timecard.git/': Recv failure: Connection was reset
+”­¶êŠ C:\Users\hajih\dotfiles\scripts\auto-sync-all.ps1:99 •¶Žš:20
++         $pushOut = git push 2>&1
++                    ~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: unable t...ction was reset:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
